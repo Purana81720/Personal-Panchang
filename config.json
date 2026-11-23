@@ -1,0 +1,19 @@
+{
+  "place": "Toronto, ON",
+  "lat": 43.6532,
+  "lon": -79.3832,
+  "elevation_m": 0,
+  "tz": "America/Toronto",
+  "ayanamsa": "lahiri",
+  "sun_disc": "upper",
+  "birth": {
+    "nakshatra": null,
+    "moon_sign": null
+  },
+  "notify": {
+    "horas": "all",
+    "active_from": "06:00",
+    "active_until": "23:00",
+    "briefing_time": "07:00"
+  }
+}

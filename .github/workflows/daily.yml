@@ -1,0 +1,92 @@
+name: Daily panchang
+
+# Runs once a day, regenerates docs/data.json, publishes the site to GitHub Pages and
+# queues tomorrow's hora notifications with ntfy.
+#
+# The cron below is in UTC. 01:00 UTC = 8 PM EST / 9 PM EDT in Toronto, i.e. the evening before
+# the day being scheduled. If you are in another timezone, pick a UTC time that lands in the
+# evening of your local day (the notifier schedules the NEXT local calendar day).
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch:
+    inputs:
+      schedule_date:
+        description: "Local date (YYYY-MM-DD) to queue notifications for. Leave empty for tomorrow."
+        required: false
+      skip_notify:
+        description: "Only rebuild the site, do not queue notifications"
+        type: boolean
+        default: false
+      send_test:
+        description: "Send one immediate test notification and stop"
+        type: boolean
+        default: false
+  push:
+    branches: [main]
+    paths: ["docs/**", "generator/**", "config.json", ".github/workflows/daily.yml"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+      NTFY_TOKEN: ${{ secrets.NTFY_TOKEN }}
+      PANCHANG_LAT: ${{ secrets.PANCHANG_LAT }}
+      PANCHANG_LON: ${{ secrets.PANCHANG_LON }}
+      PANCHANG_PLACE: ${{ vars.PANCHANG_PLACE }}
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+
+      - name: Send a test notification
+        if: ${{ github.event.inputs.send_test == 'true' }}
+        run: python generator/notify.py --test
+
+      - name: Generate panchang data
+        if: ${{ github.event.inputs.send_test != 'true' }}
+        run: python generator/generate.py
+
+      - name: Queue notifications (tomorrow, or the date you picked)
+        # Only on the scheduled run or a manual run. A code push must not queue duplicates.
+        if: ${{ github.event_name != 'push' && github.event.inputs.skip_notify != 'true' && github.event.inputs.send_test != 'true' && env.NTFY_TOPIC != '' }}
+        env:
+          SCHEDULE_DATE: ${{ github.event.inputs.schedule_date }}
+        run: |
+          if [ -n "$SCHEDULE_DATE" ]; then
+            python generator/notify.py --date "$SCHEDULE_DATE"
+          else
+            python generator/notify.py
+          fi
+
+      - uses: actions/configure-pages@v5
+        if: ${{ github.event.inputs.send_test != 'true' }}
+      - uses: actions/upload-pages-artifact@v3
+        if: ${{ github.event.inputs.send_test != 'true' }}
+        with:
+          path: docs
+
+  deploy:
+    if: ${{ github.event.inputs.send_test != 'true' }}
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

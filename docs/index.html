@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panchang</title>
+<meta name="description" content="Personal daily panchang: tithi, nakshatra, yoga, karana, horas and guidance.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Panchang">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0c0f1f">
+<style>
+:root{
+  --bg:#0c0f1f; --bg2:#141936; --card:#161b38; --card2:#1d2347; --line:#2a3160;
+  --text:#eef0fb; --muted:#9aa2cf; --accent:#f2a33a; --accent-soft:rgba(242,163,58,.14);
+  --fav:#5fd6a0; --good:#6cc4ee; --neu:#b4b9dc; --cau:#f2b24a; --avd:#f26d7d;
+  --radius:18px;
+}
+@media (prefers-color-scheme:light){
+  :root{ --bg:#f6f3ec; --bg2:#efe9da; --card:#ffffff; --card2:#faf6ec; --line:#e4dcc6;
+    --text:#241f33; --muted:#6c6784; --accent:#b8650a; --accent-soft:rgba(184,101,10,.10);
+    --fav:#12805a; --good:#1b6f9a; --neu:#5d5a78; --cau:#9a6200; --avd:#b3283b; }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:radial-gradient(1200px 600px at 50% -200px,var(--bg2),var(--bg));
+  background-attachment:fixed;color:var(--text);min-height:100vh;
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  padding:max(16px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(40px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));
+}
+main{max-width:560px;margin:0 auto;display:grid;gap:14px}
+h1,h2,h3{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-weight:600;letter-spacing:.2px}
+header{padding:6px 2px 2px}
+.place{color:var(--accent);font-size:13px;letter-spacing:.14em;text-transform:uppercase;font-weight:600}
+h1{font-size:28px;line-height:1.15;margin-top:2px}
+.sub{color:var(--muted);font-size:13px;margin-top:4px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h3{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:inherit;font-weight:600;margin-bottom:10px}
+.banner{border-radius:14px;padding:10px 14px;font-size:14px;border:1px solid var(--line);background:var(--card)}
+.banner.avoid{border-color:var(--avd);background:color-mix(in srgb,var(--avd) 12%,var(--card))}
+.banner.good{border-color:var(--fav);background:color-mix(in srgb,var(--fav) 12%,var(--card))}
+.banner.stale{border-color:var(--cau);background:color-mix(in srgb,var(--cau) 14%,var(--card))}
+.banner b{font-weight:650}
+
+/* now card */
+.now{background:linear-gradient(160deg,var(--card2),var(--card));border-color:var(--line)}
+.hora-top{display:flex;align-items:center;gap:14px}
+.glyph{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-size:30px;
+  background:var(--accent-soft);color:var(--accent);flex:none;font-family:"Apple Symbols","Segoe UI Symbol",serif}
+.hora-top .t{flex:1;min-width:0}
+.kicker{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.now h2{font-size:24px;line-height:1.2}
+.now h2 small{font-size:13px;color:var(--muted);font-weight:400;font-family:inherit}
+.chip{display:inline-flex;align-items:center;gap:5px;border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:650;border:1px solid currentColor;white-space:nowrap}
+.r-favorable{color:var(--fav)} .r-good{color:var(--good)} .r-neutral{color:var(--neu)} .r-caution{color:var(--cau)} .r-avoid{color:var(--avd)}
+.left{margin-top:14px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.left b{font-size:22px;font-variant-numeric:tabular-nums}
+.left span{color:var(--muted);font-size:13px}
+.bar{height:6px;border-radius:6px;background:var(--line);overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;width:0;background:var(--accent);border-radius:6px;transition:width .6s}
+.summary{margin-top:14px;font-size:15px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.two h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:4px}
+.two ul{list-style:none;font-size:14px;display:grid;gap:4px}
+.two li{padding-left:14px;position:relative}
+.two li::before{content:"";position:absolute;left:0;top:.62em;width:6px;height:6px;border-radius:50%;background:var(--fav)}
+.two .no li::before{background:var(--avd)}
+.warns{list-style:none;margin-top:12px;display:grid;gap:4px;font-size:13.5px;color:var(--cau)}
+.warns li::before{content:"▲ "}
+details{margin-top:12px}
+summary{cursor:pointer;color:var(--accent);font-size:14px;font-weight:600;list-style:none}
+summary::-webkit-details-marker{display:none}
+summary::after{content:" ›";}
+details[open] summary::after{content:" ⌄"}
+.reasons{list-style:none;margin-top:8px;display:grid;gap:6px;font-size:14px}
+.reasons li{display:flex;gap:10px}
+.d{min-width:30px;text-align:center;border-radius:8px;font-size:12.5px;font-weight:700;padding:1px 6px;background:var(--line);color:var(--muted);font-variant-numeric:tabular-nums;align-self:flex-start}
+.d.p{background:color-mix(in srgb,var(--fav) 22%,transparent);color:var(--fav)}
+.d.m{background:color-mix(in srgb,var(--avd) 22%,transparent);color:var(--avd)}
+.next{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line);font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+/* panchang grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tile .l{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile .v{font-family:"Iowan Old Style","Palatino Linotype",Georgia,serif;font-size:19px;font-weight:600;margin-top:2px;line-height:1.2}
+.tile .s{font-size:12.5px;color:var(--muted);margin-top:4px;line-height:1.35}
+.tile .chip{font-size:11px;padding:1px 8px;margin-top:6px}
+.tile.wide{grid-column:1/-1}
+
+/* briefing */
+.energy{display:grid;gap:10px}
+.energy div b{display:block;font-size:14.5px}
+.energy div span{font-size:14px;color:var(--muted)}
+.lists{display:grid;gap:14px;margin-top:14px}
+.lists h4{font-size:12px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;margin-bottom:6px}
+.lists .do h4{color:var(--fav)} .lists .dont h4{color:var(--avd)}
+.lists ul{list-style:none;display:grid;gap:6px;font-size:14.5px}
+.lists li{padding-left:16px;position:relative}
+.lists li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border-radius:50%}
+.lists .do li::before{background:var(--fav)} .lists .dont li::before{background:var(--avd)}
+.win{display:flex;justify-content:space-between;gap:10px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.win:first-of-type{border-top:0}
+.win .tm{color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums;font-size:13.5px;text-align:right}
+.win small{display:block;color:var(--muted);font-size:12.5px}
+.tag{display:inline-block;font-size:11.5px;border-radius:8px;padding:1px 8px;background:var(--accent-soft);color:var(--accent);font-weight:650;margin:0 6px 6px 0}
+.chg{list-style:none;display:grid;gap:4px;font-size:14px;color:var(--muted)}
+
+/* timeline */
+.tl{display:grid;gap:0}
+.row{border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row summary{display:flex;align-items:center;gap:10px;padding:10px 2px;font-weight:500;color:var(--text)}
+.row summary::after{content:""}
+.row .g{width:28px;text-align:center;font-size:19px;color:var(--accent);font-family:"Apple Symbols","Segoe UI Symbol",serif}
+.row .n{flex:1;min-width:0;font-size:14.5px}
+.row .n small{display:block;color:var(--muted);font-size:12.5px;font-variant-numeric:tabular-nums}
+.row.past{opacity:.5}
+.row.cur{background:var(--accent-soft);border-radius:12px;border-top-color:transparent;padding:0 8px;margin:2px -8px}
+.row .body{padding:0 2px 12px 38px;font-size:14px;color:var(--muted)}
+.row .body ul{margin-top:6px;padding-left:18px}
+.daylbl{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:8px 0 2px}
+footer{color:var(--muted);font-size:12.5px;line-height:1.5;padding:4px 2px}
+footer a{color:var(--accent)}
+.loading{text-align:center;color:var(--muted);padding:60px 0}
+</style>
+</head>
+<body>
+<main id="app"><div class="loading">Loading panchang…</div></main>
+
+<script>
+"use strict";
+const $app = document.getElementById("app");
+let DATA = null, TZ = "America/Toronto", lastKey = "";
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmtT = ts => new Intl.DateTimeFormat("en-US", {hour:"numeric", minute:"2-digit", timeZone:TZ}).format(new Date(ts*1000));
+const fmtD = ts => new Intl.DateTimeFormat("en-US", {weekday:"long", month:"long", day:"numeric", timeZone:TZ}).format(new Date(ts*1000));
+const fmtSD = ts => new Intl.DateTimeFormat("en-US", {month:"short", day:"numeric", timeZone:TZ}).format(new Date(ts*1000));
+const dayKey = ts => new Intl.DateTimeFormat("en-CA", {year:"numeric", month:"2-digit", day:"2-digit", timeZone:TZ}).format(new Date(ts*1000));
+const ICON = {Favorable:"✦", Good:"✓", Neutral:"–", Caution:"▲", Avoid:"✕"};
+
+function when(ts, now){
+  const a = dayKey(ts), b = dayKey(now);
+  if (a === b) return fmtT(ts);
+  const diff = Math.round((Date.parse(a) - Date.parse(b)) / 864e5);
+  if (diff === 1) return "tomorrow " + fmtT(ts);
+  if (diff === -1) return "yesterday " + fmtT(ts);
+  return fmtSD(ts) + " " + fmtT(ts);
+}
+function winWhen(w){
+  if (w.clip_start && w.clip_end) return "all day";
+  if (w.clip_start) return "until " + fmtT(w.end);
+  if (w.clip_end) return "from " + fmtT(w.start);
+  return fmtT(w.start) + "–" + fmtT(w.end);
+}
+const chip = r => `<span class="chip r-${esc(r.toLowerCase())}">${ICON[r]||""} ${esc(r)}</span>`;
+function left(sec){
+  sec = Math.max(0, Math.round(sec));
+  const h = Math.floor(sec/3600), m = Math.floor((sec%3600)/60), s = sec%60;
+  if (h) return `${h} h ${String(m).padStart(2,"0")} min`;
+  if (m >= 5) return `${m} min`;
+  return `${m}:${String(s).padStart(2,"0")}`;
+}
+const inSeg = (s, t) => s.start <= t && t < s.end;
+const curSeg = (arr, t) => arr.find(s => inSeg(s,t)) || (t >= arr[arr.length-1].end ? arr[arr.length-1] : arr[0]);
+
+function pick(now){
+  const days = DATA.days;
+  let day = days.find(d => d.sunrise <= now && now < d.next_sunrise);
+  const covered = !!day;
+  if (!day) day = now < days[0].sunrise ? days[0] : days[days.length-1];
+  const all = days.flatMap(d => d.horas.map(h => ({...h, _date:d.date})));
+  let idx = all.findIndex(h => h.start <= now && now < h.end);
+  if (idx < 0) idx = now < all[0].start ? 0 : all.length-1;
+  return {day, covered, all, idx, hora: all[idx], next: all[idx+1]};
+}
+
+function stateKey(now, p){
+  const d = p.day;
+  const act = d.windows.filter(w => inSeg(w, now)).map(w => w.key).join(",");
+  return [d.date, p.hora.start, act, curSeg(d.tithi,now).n, curSeg(d.nakshatra,now).n, curSeg(d.yoga,now).n,
+          curSeg(d.karana,now).n, curSeg(d.moon_sign,now).n, p.covered].join("|");
+}
+
+function render(now, p){
+  const d = p.day, h = p.hora, M = DATA.meta;
+  const t = curSeg(d.tithi, now), n = curSeg(d.nakshatra, now), y = curSeg(d.yoga, now);
+  const k = curSeg(d.karana, now), s = curSeg(d.moon_sign, now);
+  const nextT = d.tithi[d.tithi.indexOf(t)+1], nextN = d.nakshatra[d.nakshatra.indexOf(n)+1];
+  const nextY = d.yoga[d.yoga.indexOf(y)+1], nextK = d.karana[d.karana.indexOf(k)+1], nextS = d.moon_sign[d.moon_sign.indexOf(s)+1];
+  const B = d.briefing;
+  const out = [];
+
+  out.push(`<header><div class="place">${esc(M.place)}</div><h1>${esc(fmtD(d.sunrise))}</h1>
+    <div class="sub">${esc(d.vara_sanskrit)} · sunrise ${fmtT(d.sunrise)} · sunset ${fmtT(d.sunset)}${d.moonrise?` · moonrise ${fmtT(d.moonrise)}`:""}</div></header>`);
+
+  const age = now - M.generated_ts;
+  if (!p.covered) out.push(`<div class="banner stale"><b>Data is out of date.</b> The generator has not run recently, so the hora shown may not be current. Check the GitHub Action.</div>`);
+  else if (age > 40*3600) out.push(`<div class="banner stale"><b>Heads up:</b> data was generated ${Math.round(age/3600)} h ago. The daily job may have failed.</div>`);
+
+  for (const w of d.windows.filter(w => inSeg(w, now))){
+    const cls = w.kind === "avoid" ? "avoid" : "good";
+    out.push(`<div class="banner ${cls}">${w.kind==="avoid"?"▲":"✦"} <b>${esc(w.label)}</b> ${esc(winWhen(w))}. ${esc(w.note)}.</div>`);
+  }
+
+  // now card
+  const info = h;
+  out.push(`<section class="card now" aria-label="Current hora">
+    <div class="hora-top"><div class="glyph" aria-hidden="true">${esc(h.glyph)}</div>
+      <div class="t"><div class="kicker">${h.day?"Day":"Night"} hora ${h.day?h.n:h.n-12} of 12 · now</div>
+        <h2>${esc(h.planet)} hora</h2></div>${chip(h.rating)}</div>
+    <div class="left"><b id="left"></b><span>left · until ${esc(when(h.end, now))}</span></div>
+    <div class="bar"><i id="bar"></i></div>
+    <p class="summary">${esc(h.summary)}</p>
+    <div class="two"><div><h4>Good for</h4><ul>${h.best.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="no"><h4>Go easy on</h4><ul>${h.avoid.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div>
+    ${h.warnings.length?`<ul class="warns">${h.warnings.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+    <details><summary>Why ${esc(h.rating.toLowerCase())}? (score ${h.score>0?"+":""}${h.score})</summary>
+      <ul class="reasons">${h.reasons.map(r=>`<li><span class="d ${r.d>0?"p":r.d<0?"m":""}">${r.d>0?"+":""}${r.d}</span><span>${esc(r.t)}</span></li>`).join("")}</ul></details>
+    ${p.next?`<div class="next"><span>Next, at ${esc(when(p.next.start, now))}:</span><b>${esc(p.next.glyph)} ${esc(p.next.planet)} hora</b>${chip(p.next.rating)}</div>`:""}
+  </section>`);
+
+  // panchang grid
+  const tl = x => `${x.paksha} ${x.name}`;
+  out.push(`<section class="card"><h3>Panchang now</h3><div class="grid">
+    <div class="tile"><div class="l">Tithi</div><div class="v">${esc(t.name)}</div>
+      <div class="s">${esc(t.paksha)} paksha · until ${esc(when(t.end,now))}${nextT?`<br>then ${esc(nextT.name)}`:""}</div><span class="chip r-neutral">${esc(t.category)}</span></div>
+    <div class="tile"><div class="l">Nakshatra</div><div class="v">${esc(n.name)}</div>
+      <div class="s">Lord ${esc(n.lord)} · until ${esc(when(n.end,now))}${nextN?`<br>then ${esc(nextN.name)}`:""}</div><span class="chip r-neutral">${esc(n.group)}</span></div>
+    <div class="tile"><div class="l">Yoga</div><div class="v">${esc(y.name)}</div>
+      <div class="s">until ${esc(when(y.end,now))}${nextY?`<br>then ${esc(nextY.name)}`:""}</div>${y.challenging?`<span class="chip r-caution">▲ challenging</span>`:""}</div>
+    <div class="tile"><div class="l">Karana</div><div class="v">${esc(k.name)}</div>
+      <div class="s">until ${esc(when(k.end,now))}${nextK?`<br>then ${esc(nextK.name)}`:""}</div>${k.vishti?`<span class="chip r-avoid">✕ Vishti</span>`:""}</div>
+    <div class="tile"><div class="l">Vara</div><div class="v">${esc(d.vara)}</div>
+      <div class="s">Ruler ${esc(d.vara_lord)} · ${esc(d.vara_info.deity)}</div></div>
+    <div class="tile"><div class="l">Moon sign</div><div class="v">${esc(s.name)}</div>
+      <div class="s">${esc(s.english)}${nextS?` · until ${esc(when(s.end,now))}`:""} · Sun in ${esc(d.sun_sign.name)}</div></div>
+    ${(n.tara||s.chandra)?`<div class="tile wide"><div class="l">Personal</div><div class="s" style="margin-top:4px;font-size:14px">${n.tara?`Tarabala: <b>${esc(n.tara.name)}</b> (${n.tara.good===true?"favourable":n.tara.good===false?"unfavourable":"mixed"})`:""}${n.tara&&s.chandra?"<br>":""}${s.chandra?`Chandrabala: Moon in your house <b>${s.chandra.house}</b> (${s.chandra.good?"supportive":"weak"})`:""}</div></div>`:""}
+  </div></section>`);
+
+  // briefing
+  out.push(`<section class="card"><h3>Today's briefing · as of sunrise</h3>
+    <div style="font-family:Georgia,serif;font-size:19px;font-weight:600;margin-bottom:10px">${esc(B.headline)}</div>
+    ${d.observances.length?d.observances.map(o=>`<span class="tag" title="${esc(o.basis)}">${esc(o.name)}</span>`).join("")+`<div class="sub" style="margin:-2px 0 10px">${d.observances.map(o=>esc(o.note)).join(" ")}</div>`:""}
+    <div class="energy">${B.energies.map(e=>`<div><b>${esc(e.title)}</b><span>${esc(e.text)}</span></div>`).join("")}</div>
+    ${B.changes.length?`<h3 style="margin-top:16px">Changes during this day</h3><ul class="chg">${B.changes.map(c=>`<li>${esc(c.text)}</li>`).join("")}</ul>`:""}
+    <div class="lists"><div class="do"><h4>Do</h4><ul>${B.do.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
+      <div class="dont"><h4>Avoid</h4><ul>${B.avoid.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div></div></section>`);
+
+  out.push(`<section class="card"><h3>Best windows</h3>${B.best_windows.length?B.best_windows.map(w=>
+    `<div class="win"><div>${esc(w.label)} ${chip(w.rating)}<small>${esc(w.note)}</small></div><div class="tm">${fmtT(w.start)}–${fmtT(w.end)}</div></div>`).join(""):`<div class="sub">No strongly favourable hora in waking hours today.</div>`}
+    ${d.windows.filter(w=>w.kind==="good").map(w=>`<div class="win"><div>${esc(w.label)}<small>${esc(w.note)}</small></div><div class="tm">${fmtT(w.start)}–${fmtT(w.end)}</div></div>`).join("")}
+    <h3 style="margin-top:16px">Avoid starting things</h3>${B.avoid_windows.map(w=>
+    `<div class="win"><div>${esc(w.label)}<small>${esc(w.note)}</small></div><div class="tm">${esc(w.when)}</div></div>`).join("")}</section>`);
+
+  // timeline
+  out.push(`<section class="card"><h3>All horas · sunrise to sunrise</h3><div class="tl">${d.horas.map(x=>{
+    const cls = now >= x.end ? "past" : (x.start <= now && now < x.end ? "cur" : "");
+    return `<details class="row ${cls}"${cls==="cur"?"":""}><summary><span class="g">${esc(x.glyph)}</span>
+      <span class="n">${esc(x.planet)}<small>${fmtT(x.start)}–${fmtT(x.end)} · ${x.day?"day":"night"}</small></span>${chip(x.rating)}</summary>
+      <div class="body">${esc(x.summary)}${x.warnings.length?`<ul>${x.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}</div></details>`;}).join("")}</div></section>`);
+
+  out.push(`<footer>Computed for ${esc(M.place)} (${M.lat}, ${M.lon}) · ${esc(M.ayanamsa)} ayanamsa · ${esc(M.engine)}<br>
+    Generated ${esc(when(M.generated_ts, now))}. ${esc(M.disclaimer)} Observances use conventional reference times; confirm festival dates in a local calendar.</footer>`);
+
+  $app.innerHTML = out.join("");
+  const cur = $app.querySelector(".row.cur"); if (cur) cur.setAttribute("data-cur","1");
+}
+
+function tick(){
+  if (!DATA) return;
+  const now = Math.floor(Date.now()/1000), p = pick(now), key = stateKey(now, p);
+  if (key !== lastKey){ lastKey = key; render(now, p); }
+  const L = document.getElementById("left"), Bar = document.getElementById("bar"), h = p.hora;
+  if (L) L.textContent = left(h.end - now);
+  if (Bar) Bar.style.width = Math.min(100, Math.max(0, 100*(now-h.start)/(h.end-h.start))) + "%";
+}
+
+async function load(){
+  try{
+    const r = await fetch("data.json?_=" + Date.now(), {cache:"no-store"});
+    if (!r.ok) throw new Error(r.status);
+    DATA = await r.json();
+    try{ localStorage.setItem("panchang-data", JSON.stringify(DATA)); }catch(e){}
+  }catch(e){
+    try{ DATA = JSON.parse(localStorage.getItem("panchang-data")); }catch(_){}
+  }
+  if (!DATA){ $app.innerHTML = `<div class="loading">Could not load data.json. Check your connection and reload.</div>`; return; }
+  TZ = DATA.meta.tz; lastKey = ""; tick();
+}
+load();
+setInterval(tick, 1000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden){ load(); } });
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+  navigator.serviceWorker.register("sw.js").catch(()=>{});
+}
+</script>
+</body>
+</html>
