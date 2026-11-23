@@ -7,7 +7,7 @@
 //        3) Set DATA_URL below (or put the URL in the widget's "Parameter" field).
 //        4) Long-press Home Screen > + > Scriptable > pick size > Edit Widget > choose this script.
 
-const DATA_URL = "https://YOUR-USERNAME.github.io/YOUR-REPO/data.json";
+const DATA_URL = "https://purana81720.github.io/personal-panchang/data.json";
 
 const CACHE_FILE = "panchang-data.json";
 const C = {
