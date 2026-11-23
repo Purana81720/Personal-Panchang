@@ -7,7 +7,10 @@ Usage:
     python generator/generate.py                 # today in the configured timezone
     python generator/generate.py --date 2026-11-13
     python generator/generate.py --out /tmp/data.json
-Environment overrides (handy for GitHub secrets): PANCHANG_LAT, PANCHANG_LON, PANCHANG_PLACE, PANCHANG_TZ
+Environment overrides (GitHub secrets, so nothing personal lives in this public repo):
+  PANCHANG_LAT, PANCHANG_LON, PANCHANG_TZ            location (required unless set in config.json)
+  PANCHANG_BIRTH_NAKSHATRA, PANCHANG_BIRTH_MOON_SIGN  birth Moon; used ONLY for private notifications,
+                                                      never written to the public data.json
 """
 from __future__ import annotations
 
@@ -29,7 +32,8 @@ DISCLAIMER = ("Traditional Jyotish/Muhurta guidance computed from Swiss Ephemeri
               "Lineages differ; treat as guidance, not prediction or advice.")
 
 
-def load_config(path=None):
+def load_config(path=None, private=False):
+    """private=True (notifier only) also applies the birth-chart secrets. The public site build never does."""
     cfg = json.loads(Path(path or ROOT / "config.json").read_text(encoding="utf-8"))
     env = os.environ
     if env.get("PANCHANG_LAT"):
@@ -40,6 +44,18 @@ def load_config(path=None):
         cfg["place"] = env["PANCHANG_PLACE"]
     if env.get("PANCHANG_TZ"):
         cfg["tz"] = env["PANCHANG_TZ"]
+    if private:
+        birth = dict(cfg.get("birth") or {})
+        if env.get("PANCHANG_BIRTH_NAKSHATRA"):
+            birth["nakshatra"] = env["PANCHANG_BIRTH_NAKSHATRA"]
+        if env.get("PANCHANG_BIRTH_MOON_SIGN"):
+            birth["moon_sign"] = env["PANCHANG_BIRTH_MOON_SIGN"]
+        cfg["birth"] = birth
+    else:
+        cfg["birth"] = {}          # the public page never carries personal (birth-based) guidance
+    if cfg.get("lat") is None or cfg.get("lon") is None:
+        sys.exit("Location not set: add the PANCHANG_LAT and PANCHANG_LON repository secrets "
+                 "(or put lat/lon in config.json for a private copy).")
     return cfg
 
 
@@ -54,7 +70,7 @@ def build_data(cfg, today: date, before=1, after=1, eng=None):
     now = int(time.time())
     return {
         "meta": {
-            "place": cfg["place"], "lat": round(cfg["lat"], 2), "lon": round(cfg["lon"], 2),   # ~1 km: the site is public
+            "place": cfg.get("public_place", "Private location"),   # the site is public: no coordinates or city
             "tz": cfg["tz"], "ayanamsa": cfg.get("ayanamsa", "lahiri"),
             "generated_ts": now, "for_date": today.isoformat(),
             "engine": "Swiss Ephemeris (pyswisseph, Moshier)", "disclaimer": DISCLAIMER,
@@ -81,7 +97,7 @@ def main():
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(data, ensure_ascii=False, separators=(",", ":")), encoding="utf-8")
-    print(f"wrote {out} ({out.stat().st_size/1024:.0f} KB) for {today} at {cfg['place']}")
+    print(f"wrote {out} ({out.stat().st_size/1024:.0f} KB) for {today}")
 
 
 if __name__ == "__main__":

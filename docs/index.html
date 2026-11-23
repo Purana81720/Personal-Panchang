@@ -266,7 +266,7 @@ function render(now, p){
       <span class="n">${esc(x.planet)}<small>${fmtT(x.start)}–${fmtT(x.end)} · ${x.day?"day":"night"}</small></span>${chip(x.rating)}</summary>
       <div class="body">${esc(x.summary)}${x.warnings.length?`<ul>${x.warnings.map(w=>`<li>${esc(w)}</li>`).join("")}</ul>`:""}</div></details>`;}).join("")}</div></section>`);
 
-  out.push(`<footer>Computed for ${esc(M.place)} (${M.lat}, ${M.lon}) · ${esc(M.ayanamsa)} ayanamsa · ${esc(M.engine)}<br>
+  out.push(`<footer>Computed for ${esc(M.place)} · ${esc(M.ayanamsa)} ayanamsa · ${esc(M.engine)}<br>
     Generated ${esc(when(M.generated_ts, now))}. ${esc(M.disclaimer)} Observances use conventional reference times; confirm festival dates in a local calendar.</footer>`);
 
   $app.innerHTML = out.join("");

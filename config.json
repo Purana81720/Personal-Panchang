@@ -1,7 +1,7 @@
 {
-  "place": "Toronto, ON",
-  "lat": 43.6532,
-  "lon": -79.3832,
+  "place": "Private location",
+  "lat": null,
+  "lon": null,
   "elevation_m": 0,
   "tz": "America/Toronto",
   "ayanamsa": "lahiri",
@@ -15,5 +15,6 @@
     "active_from": "06:00",
     "active_until": "23:00",
     "briefing_time": "07:00"
-  }
+  },
+  "public_place": "Private location"
 }

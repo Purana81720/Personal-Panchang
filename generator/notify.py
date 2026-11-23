@@ -156,7 +156,7 @@ def main():
     ap.add_argument("--test", action="store_true", help="send one immediate test notification and exit")
     args = ap.parse_args()
 
-    cfg = load_config(args.config)
+    cfg = load_config(args.config, private=True)
     server = os.environ.get("NTFY_SERVER", "https://ntfy.sh")
     topic = os.environ.get("NTFY_TOPIC", "")
     token = os.environ.get("NTFY_TOKEN") or None
